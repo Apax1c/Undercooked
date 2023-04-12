@@ -29,22 +29,26 @@ public class DeliveryManager : NetworkBehaviour
 
     private void Update()
     {
-        if (!IsServer)
+        switch (!IsServer)
         {
-            return;
+            case true:
+                return;
         }
 
         spawnRecipeTimer -= Time.deltaTime;
-        if(spawnRecipeTimer < 0f ) 
+        switch (spawnRecipeTimer > 0f)
         {
-            spawnRecipeTimer = spawnRecipeTimerMax;
+            case true:
+                return;
+        }
 
-            if(KitchenGameManager.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipesMax)
-            {
+        spawnRecipeTimer = spawnRecipeTimerMax;
+        switch (KitchenGameManager.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipesMax)
+        {
+            case true:
                 int waitingRecipeSOIndex = UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count);
-
                 SpawnNewWaitingRecipeClientRpc(waitingRecipeSOIndex);
-            }
+                break;
         }
     }
 
@@ -59,34 +63,23 @@ public class DeliveryManager : NetworkBehaviour
 
     public void DeliveryRecipe(PlateKitchenObject plateKitchenObject)
     {
-        for (int i = 0; i <waitingRecipeSOList.Count; i++)
+        foreach (RecipeSO waitingRecipeSO in waitingRecipeSOList)
         {
-            RecipeSO waitingRecipeSO = waitingRecipeSOList[i];
-
-            if(waitingRecipeSO.kitchenObjectSOList.Count == plateKitchenObject.GetKitchenObjectSOList().Count)
+            switch(waitingRecipeSO.kitchenObjectSOList.Count != plateKitchenObject.GetKitchenObjectSOList().Count)
             {
-                bool plateContetntsMatchesRecipe = true;
-                foreach (KitchenObjectSO recipeKitchenObjectSO in waitingRecipeSO.kitchenObjectSOList)
-                {
-                    bool ingredientFound = false;
-                    foreach (KitchenObjectSO plateKitchenObjectSO in plateKitchenObject.GetKitchenObjectSOList())
-                    {
-                        if (plateKitchenObjectSO == recipeKitchenObjectSO)
-                        {
-                            ingredientFound = true;
-                            break;
-                        }
-                    }
-                    if (!ingredientFound)
-                    {
-                        plateContetntsMatchesRecipe = false;
-                    }
-                }
+                case true:
+                    continue;
+            }
 
-                if(plateContetntsMatchesRecipe)
+            foreach (KitchenObjectSO recipeKitchenObjectSO in waitingRecipeSO.kitchenObjectSOList)
+            {
+                foreach (KitchenObjectSO plateKitchenObjectSO in plateKitchenObject.GetKitchenObjectSOList())
                 {
-                    DeliverCorrectRecipeServerRpc(i);
-                    return;
+                    if (plateKitchenObjectSO == recipeKitchenObjectSO)
+                    {
+                        DeliverCorrectRecipeServerRpc(waitingRecipeSOList.IndexOf(waitingRecipeSO));
+                        return;
+                    }
                 }
             }
         }

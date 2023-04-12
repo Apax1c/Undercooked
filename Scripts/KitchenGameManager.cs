@@ -110,17 +110,17 @@ public class KitchenGameManager : MonoBehaviour
     public void TogglePauseGame()
     {
         isGamePaused = !isGamePaused;
-        if (isGamePaused)
-        {
-            Time.timeScale = 0f;
-            OnGamePaused?.Invoke(this, EventArgs.Empty);
-        }
-        else
-        {
-            Time.timeScale = 1f;
 
-            OnGameUnpaused?.Invoke(this, EventArgs.Empty);
+        switch (!isGamePaused)
+        {
+            case true:
+                Time.timeScale = 1f;
+                OnGameUnpaused?.Invoke(this, EventArgs.Empty);
+                break;
+            case false:
+                Time.timeScale = 0f;
+                OnGamePaused?.Invoke(this, EventArgs.Empty);
+                break;
         }
-        
     }
 }
